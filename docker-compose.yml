@@ -6,6 +6,8 @@ services:
     build: .
     environment:
       RUNLET_NATS_URL: nats://queue:4222
+    volumes:
+    - "/var/run/docker.sock:/var/run/docker.sock"
   queue:
     image: nats
     ports:

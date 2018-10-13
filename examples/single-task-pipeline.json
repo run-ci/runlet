@@ -1,16 +1,11 @@
 {
-    "remote": "https://github.com/juicemia/go-sample-app",
+    "remote": "https://gitlab.com/run-ci/run",
     "steps": {
         "test": [
             {
-                "name": "fmt",
-                "command": "./scripts/checkfmt.sh",
-                "image": "golang:1.11-stretch"
-            },
-            {
                 "name": "test",
-                "command": "go test -v ./...",
-                "image": "golang:1.11-stretch"
+                "command": "echo 'PIPELINE RUN' > ci.log",
+                "image": "alpine"
             }
         ]
     }

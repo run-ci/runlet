@@ -6,9 +6,8 @@ import (
 	"gitlab.com/run-ci/run/pkg/run"
 )
 
-func initCIVolume(agent *run.Agent, client *docker.Client) string {
+func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string {
 	name := "runlet-test-vol"
-	gitrepo := "https://github.com/juicemia/go-sample-app"
 
 	// TODO: don't hard-code this maybe?
 	err := agent.VerifyImagePresent("run-ci/git-clone", true)
@@ -29,7 +28,7 @@ func initCIVolume(agent *run.Agent, client *docker.Client) string {
 	spec := run.ContainerSpec{
 		// TODO: fix all this hard-coded crap
 		Imgref: "run-ci/git-clone",
-		Cmd:    []string{gitrepo, "."},
+		Cmd:    []string{remote, "."},
 		Mount: run.Mount{
 			Src:   vol.Name,
 			Point: "/ci",
