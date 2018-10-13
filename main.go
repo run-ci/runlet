@@ -84,29 +84,4 @@ func main() {
 			}
 		}
 	}
-
-	// task := run.Task{
-
-	// 	Image:   "golang:1.11-stretch",
-	// 	Mount:   "/go/src/github.com/juicemia/go-sample-app",
-	// 	Shell:   "sh",
-	// 	Command: "go build -v",
-	// }
-
-	// spec := run.ContainerSpec{
-	// 	Imgref: task.Image,
-	// 	Cmd:    task.GetCmd(),
-	// 	Mount: run.Mount{
-	// 		Src:   vol,
-	// 		Point: task.Mount,
-	// 		Type:  "volume",
-	// 	},
-	// }
-
-	// id, status, err := agent.RunContainer(spec)
-	// if err != nil {
-	// 	log.Fatalf("error running task container: %v", err)
-	// }
-
-	// log.Debugf("task container %v exited with status %v", id, status)
 }
