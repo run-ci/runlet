@@ -1,8 +1,8 @@
 # Events
 
-Events are what drive the run-agent to do work.
+Events are what drive the runlet to do work.
 
-They must include everything the run-agent needs to run
+They must include everything the runlet needs to run
 a pipeline. For now, the list of minimum things is:
 
 1. The remote URL to clone from Git.

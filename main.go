@@ -13,7 +13,7 @@ func init() {
 }
 
 func main() {
-	log.Info("booting run-agent")
+	log.Info("booting runlet")
 
 	client, err := docker.NewClient("unix:///var/run/docker.sock")
 	if err != nil {
@@ -30,7 +30,7 @@ func main() {
 
 func initCIVolume(client *docker.Client) error {
 	vol, err := client.CreateVolume(docker.CreateVolumeOptions{
-		Name: "run-agent-test-vol",
+		Name: "runlet-test-vol",
 	})
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func initCIVolume(client *docker.Client) error {
 		Mounts: []docker.HostMount{
 			docker.HostMount{
 				Target: "/mnt/git-clone",
-				Source: "run-agent-test-vol",
+				Source: "runlet-test-vol",
 				Type:   "volume",
 			},
 
