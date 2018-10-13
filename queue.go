@@ -8,6 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SubscribeToQueue sets up a subscription in NATS on the "pipelines" subject.
+// TODO: abstract away the dependency on NATS.
 func SubscribeToQueue(url, subject string) (<-chan *nats.Msg, func()) {
 	log.Infof("connecting to nats at %v with subject %v", url, subject)
 
