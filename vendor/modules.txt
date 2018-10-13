@@ -45,6 +45,12 @@ github.com/fsouza/go-dockerclient/internal/term
 github.com/gogo/protobuf/proto
 # github.com/konsorten/go-windows-terminal-sequences v0.0.0-20180402223658-b729f2633dfe
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/nats-io/go-nats v1.6.0
+github.com/nats-io/go-nats
+github.com/nats-io/go-nats/encoders/builtin
+github.com/nats-io/go-nats/util
+# github.com/nats-io/nuid v1.0.0
+github.com/nats-io/nuid
 # github.com/opencontainers/go-digest v1.0.0-rc1
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1

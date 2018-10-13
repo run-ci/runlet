@@ -1,9 +1,6 @@
 package main
 
 import (
-	"gitlab.com/run-ci/run/pkg/run"
-
-	docker "github.com/fsouza/go-dockerclient"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,41 +12,48 @@ func init() {
 func main() {
 	log.Info("booting runlet")
 
-	client, err := docker.NewClient("unix:///var/run/docker.sock")
-	if err != nil {
-		log.Fatalf("error opening docker socket: %v", err)
+	evq, teardown := SubscribeToQueue("pipelines")
+	defer teardown()
+
+	// client, err := docker.NewClient("unix:///var/run/docker.sock")
+	// if err != nil {
+	// 	log.Fatalf("error opening docker socket: %v", err)
+	// }
+
+	// log.Debug("initialized docker client")
+
+	// agent, err := run.NewAgent(client)
+	// if err != nil {
+	// 	log.Fatalf("error initializing run agent with our client: %v", err)
+	// }
+
+	for ev := range evq {
+		log.Debugf("processing message: %s", ev.Data)
 	}
 
-	log.Debug("initialized docker client")
+	// vol := initCIVolume(agent, client)
 
-	agent, err := run.NewAgent(client)
-	if err != nil {
-		log.Fatalf("error initializing run agent with our client: %v", err)
-	}
+	// task := run.Task{
+	// 	Image:   "golang:1.11-stretch",
+	// 	Mount:   "/go/src/github.com/juicemia/go-sample-app",
+	// 	Shell:   "sh",
+	// 	Command: "go build -v",
+	// }
 
-	vol := initCIVolume(agent, client)
+	// spec := run.ContainerSpec{
+	// 	Imgref: task.Image,
+	// 	Cmd:    task.GetCmd(),
+	// 	Mount: run.Mount{
+	// 		Src:   vol,
+	// 		Point: task.Mount,
+	// 		Type:  "volume",
+	// 	},
+	// }
 
-	task := run.Task{
-		Image:   "golang:1.11-stretch",
-		Mount:   "/go/src/github.com/juicemia/go-sample-app",
-		Shell:   "sh",
-		Command: "go build -v",
-	}
+	// id, status, err := agent.RunContainer(spec)
+	// if err != nil {
+	// 	log.Fatalf("error running task container: %v", err)
+	// }
 
-	spec := run.ContainerSpec{
-		Imgref: task.Image,
-		Cmd:    task.GetCmd(),
-		Mount: run.Mount{
-			Src:   vol,
-			Point: task.Mount,
-			Type:  "volume",
-		},
-	}
-
-	id, status, err := agent.RunContainer(spec)
-	if err != nil {
-		log.Fatalf("error running task container: %v", err)
-	}
-
-	log.Debugf("task container %v exited with status %v", id, status)
+	// log.Debugf("task container %v exited with status %v", id, status)
 }

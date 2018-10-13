@@ -1,0 +1,11 @@
+{
+    "remote": "https://github.com/juicemia/go-sample-app",
+    "nodes": {
+        "f6fdc74a-e554-4631-9628-f900ef9052fd": {
+            "task": "test",
+            "image": "alpine:latest",
+            "command": "echo hello"
+        }
+    },
+    "edges": {}
+}
