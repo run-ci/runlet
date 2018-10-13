@@ -1,0 +1,14 @@
+---
+version: "3"
+
+services:
+  runlet:
+    build: .
+    environment:
+      RUNLET_NATS_URL: nats://queue:4222
+  queue:
+    image: nats
+    ports:
+    - "4222:4222"
+    - "5222:5222"
+    - "6222:6222"

@@ -1,18 +1,28 @@
 package main
 
 import (
+	"os"
+
+	nats "github.com/nats-io/go-nats"
 	log "github.com/sirupsen/logrus"
 )
+
+var natsURL string
 
 func init() {
 	// TODO: fix all this logging shit...
 	log.SetLevel(log.DebugLevel)
+
+	natsURL = os.Getenv("RUNLET_NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
 }
 
 func main() {
 	log.Info("booting runlet")
 
-	evq, teardown := SubscribeToQueue("pipelines")
+	evq, teardown := SubscribeToQueue(natsURL, "pipelines")
 	defer teardown()
 
 	// client, err := docker.NewClient("unix:///var/run/docker.sock")
