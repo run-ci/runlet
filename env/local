@@ -1,1 +1,1 @@
-export TEST_EVENT=$(cat examples/single-task-pipeline.json)
+export TEST_EVENT=$(cat examples/test-pipeline.json)

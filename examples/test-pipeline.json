@@ -1,0 +1,33 @@
+{
+    "remote": "https://gitlab.com/run-ci/run",
+    "steps": {
+        "write_log": [
+            {
+                "name": "write",
+                "command": "echo 'PIPELINE RUN' > ci.log",
+                "image": "alpine"
+            }
+        ],
+        "read_log": [
+            {
+                "name": "read",
+                "command": "cat ci.log",
+                "image": "alpine"
+            }
+        ],
+        "write_again": [
+            {
+                "name": "write",
+                "command": "echo 'PIPELINE RUN AGAIN' >> ci.log",
+                "image": "alpine"
+            }
+        ],
+        "read_again": [
+            {
+                "name": "read",
+                "command": "cat ci.log",
+                "image": "alpine"
+            }
+        ]
+    }
+}
