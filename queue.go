@@ -31,6 +31,8 @@ func SubscribeToQueue(url, subject string) (<-chan *nats.Msg, func()) {
 
 	log.Info("nats connection successful")
 
+	// TODO: ensure that this is a queue-group and not a publisher. Multiple runlets
+	// shouldn't process the same message.
 	ch := make(chan *nats.Msg)
 	sub, err := nc.ChanSubscribe(subject, ch)
 	if err != nil {
