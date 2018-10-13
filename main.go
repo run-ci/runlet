@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 
 	nats "github.com/nats-io/go-nats"
@@ -37,8 +38,16 @@ func main() {
 	// 	log.Fatalf("error initializing run agent with our client: %v", err)
 	// }
 
-	for ev := range evq {
-		log.Debugf("processing message: %s", ev.Data)
+	for msg := range evq {
+		log.Debugf("processing message: %s", msg.Data)
+
+		var ev Event
+		err := json.Unmarshal(msg.Data, &ev)
+		if err != nil {
+			log.Warnf("error parsing message: %v", err)
+		}
+
+		log.Debugf("parsed event: %+v", ev)
 	}
 
 	// vol := initCIVolume(agent, client)

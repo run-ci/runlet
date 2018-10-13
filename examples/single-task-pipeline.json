@@ -1,0 +1,17 @@
+{
+    "remote": "https://github.com/juicemia/go-sample-app",
+    "steps": {
+        "test": [
+            {
+                "name": "fmt",
+                "command": "./scripts/checkfmt.sh",
+                "image": "golang:1.11-stretch"
+            },
+            {
+                "name": "test",
+                "command": "go test -v ./...",
+                "image": "golang:1.11-stretch"
+            }
+        ]
+    }
+}

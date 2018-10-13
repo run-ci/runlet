@@ -33,77 +33,76 @@ edited by hand.
 
 ```JSON
 {
-  "type": "object",
-  "required": ["remote", "steps"],
-  "properties": {
-    "remote": {
-      "type": "string"
-    },
-    "steps": {
-      "type": "object",
-      "patternProperties": {
-        ".*": {
-          "type": "object",
-          "required": ["tasks"],
-          "properties": {
-            "next": {
-              "type": "string"
-            },
-            "tasks": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": ["name", "image", "command"],
-                "properties": {
-                  "name": { "type": "string" },
-                  "image": { "type": "string" },
-                  "command": { "type": "string" },
-                  "mount": { "type": "string" },
-                  "arguments": { "type": "object" }
+    "type": "object",
+    "required": [
+        "remote",
+        "steps"
+    ],
+    "properties": {
+        "remote": {
+            "type": "string"
+        },
+        "steps": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "image",
+                            "command"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "image": {
+                                "type": "string"
+                            },
+                            "command": {
+                                "type": "string"
+                            },
+                            "mount": {
+                                "type": "string"
+                            },
+                            "arguments": {
+                                "type": "object"
+                            }
+                        }
+                    }
                 }
-              }
             }
-          }
         }
-      }
     }
-  }
 }
 ```
 
 ## Sample Event
-
 ```JSON
 {
-  "remote": "https://github.com/juicemia/go-sample-app",
-
-  "steps": {
-    "test": {
-      "tasks": [
-        {
-          "name": "fmt",
-          "command": "./scripts/checkfmt.sh",
-          "image": "golang:1.11-stretch"
-        },
-        {
-          "name": "test",
-          "command": "go test -v ./...",
-          "image": "golang:1.11-stretch"
-        }
-      ],
-
-      "next": "build"
-    },
-
-    "build": {
-      "tasks": [
-        {
-          "name": "build",
-          "command": "go build -v",
-          "image": "golang:1.11-stretch"
-        }
-      ]
+    "remote": "https://github.com/juicemia/go-sample-app",
+    "steps": {
+        "test": [
+            {
+                "name": "fmt",
+                "command": "./scripts/checkfmt.sh",
+                "image": "golang:1.11-stretch"
+            },
+            {
+                "name": "test",
+                "command": "go test -v ./...",
+                "image": "golang:1.11-stretch"
+            }
+        ],
+        "build": [
+            {
+                "name": "build",
+                "command": "go build -v",
+                "image": "golang:1.11-stretch"
+            }
+        ]
     }
-  }
 }
 ```

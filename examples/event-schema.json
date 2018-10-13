@@ -1,0 +1,45 @@
+{
+    "type": "object",
+    "required": [
+        "remote",
+        "steps"
+    ],
+    "properties": {
+        "remote": {
+            "type": "string"
+        },
+        "steps": {
+            "type": "object",
+            "patternProperties": {
+                ".*": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "name",
+                            "image",
+                            "command"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "image": {
+                                "type": "string"
+                            },
+                            "command": {
+                                "type": "string"
+                            },
+                            "mount": {
+                                "type": "string"
+                            },
+                            "arguments": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
