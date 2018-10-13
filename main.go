@@ -27,34 +27,29 @@ func main() {
 		log.Fatalf("error initializing run agent with our client: %v", err)
 	}
 
-	err = agent.VerifyImagePresent("run-ci/git-clone", true)
-	if err != nil {
-		log.Fatalf("error verifying image git-clone image presence: %v", err)
-	}
+	vol := initCIVolume(agent, client)
 
-	vol, err := client.CreateVolume(docker.CreateVolumeOptions{
-		Name: "runlet-test-vol",
-	})
-	if err != nil {
-		log.Fatalf("error creating test volume: %v", err)
+	task := run.Task{
+		Image:   "golang:1.11-stretch",
+		Mount:   "/go/src/github.com/juicemia/go-sample-app",
+		Shell:   "sh",
+		Command: "go build -v",
 	}
-
-	log.Debugf("created volume: %v", vol.Name)
 
 	spec := run.ContainerSpec{
-		Imgref: "run-ci/git-clone",
-		Cmd:    []string{"https://github.com/juicemia/go-sample", "repo"},
+		Imgref: task.Image,
+		Cmd:    task.GetCmd(),
 		Mount: run.Mount{
-			Src:   vol.Name,
-			Point: "/ci",
+			Src:   vol,
+			Point: task.Mount,
 			Type:  "volume",
 		},
 	}
 
 	id, status, err := agent.RunContainer(spec)
 	if err != nil {
-		log.Fatalf("error running git clone container %v: %v", id, err)
+		log.Fatalf("error running task container: %v", err)
 	}
 
-	log.Debugf("git clone container exited with status %v", status)
+	log.Debugf("task container %v exited with status %v", id, status)
 }
