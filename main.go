@@ -53,7 +53,7 @@ func init() {
 func main() {
 	logger.Info("booting runlet")
 
-	evq, teardown := SubscribeToQueue(natsURL, "pipelines")
+	evq, teardown := SubscribeToQueue(natsURL, "pipelines", "runlet")
 	defer teardown()
 
 	client, err := docker.NewClient("unix:///var/run/docker.sock")
