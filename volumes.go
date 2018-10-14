@@ -22,7 +22,6 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 	}
 
 	vol, err := client.CreateVolume(docker.CreateVolumeOptions{
-		// TODO: dynamically generate this, the names shouldn't matter
 		Name: name,
 	})
 	if err != nil {
