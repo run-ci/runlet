@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
+
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"gitlab.com/run-ci/run/pkg/run"
 )
@@ -9,7 +12,7 @@ import (
 func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string {
 	logger := logger.WithField("remote", remote)
 
-	name := "runlet-test-vol"
+	name := fmt.Sprintf("runlet.%v", uuid.New())
 
 	// TODO: don't hard-code this maybe?
 	err := agent.VerifyImagePresent("run-ci/git-clone", true)
