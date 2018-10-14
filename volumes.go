@@ -14,8 +14,7 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 
 	name := fmt.Sprintf("runlet.%v", uuid.New())
 
-	// TODO: don't hard-code this maybe?
-	err := agent.VerifyImagePresent("run-ci/git-clone", true)
+	err := agent.VerifyImagePresent(gitimg, true)
 	if err != nil {
 		logger.WithField("error", err).
 			Fatalf("unable to verify git-clone image presence")
@@ -34,7 +33,7 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 
 	spec := run.ContainerSpec{
 		// TODO: fix all this hard-coded crap
-		Imgref: "run-ci/git-clone",
+		Imgref: gitimg,
 		Cmd:    []string{remote, "."},
 		Mount: run.Mount{
 			Src:   vol.Name,

@@ -11,13 +11,18 @@ import (
 	"gitlab.com/run-ci/run/pkg/run"
 )
 
-var natsURL string
+var natsURL, gitimg string
 var logger *log.Entry
 
 func init() {
 	natsURL = os.Getenv("RUNLET_NATS_URL")
 	if natsURL == "" {
 		natsURL = nats.DefaultURL
+	}
+
+	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
+	if gitimg == "" {
+		gitimg = "run-ci/git-clone"
 	}
 
 	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
