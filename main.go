@@ -70,7 +70,7 @@ func main() {
 		if err != nil {
 			logger.WithFields(log.Fields{
 				"error": err,
-			}).Warnf("error parsing message, skipping")
+			}).Error("error parsing message, skipping")
 
 			continue
 		}
@@ -119,6 +119,14 @@ func main() {
 
 				logger.Debugf("task container exited with status %v", status)
 			}
+		}
+
+		err = client.RemoveVolume(vol)
+		if err != nil {
+			logger.WithFields(log.Fields{
+				"error": err,
+				"vol":   vol,
+			}).Error("unable to delete volume")
 		}
 	}
 }
