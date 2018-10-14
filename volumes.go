@@ -32,12 +32,11 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 	logger.Debugf("created volume: %v", vol.Name)
 
 	spec := run.ContainerSpec{
-		// TODO: fix all this hard-coded crap
 		Imgref: gitimg,
 		Cmd:    []string{remote, "."},
 		Mount: run.Mount{
 			Src:   vol.Name,
-			Point: "/ci",
+			Point: cimnt,
 			Type:  "volume",
 		},
 	}

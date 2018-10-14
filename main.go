@@ -11,7 +11,7 @@ import (
 	"gitlab.com/run-ci/run/pkg/run"
 )
 
-var natsURL, gitimg string
+var natsURL, gitimg, cimnt string
 var logger *log.Entry
 
 func init() {
@@ -23,6 +23,11 @@ func init() {
 	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
 	if gitimg == "" {
 		gitimg = "run-ci/git-clone"
+	}
+
+	cimnt = os.Getenv("RUNLET_CI_MOUNT")
+	if cimnt == "" {
+		cimnt = "/ci/repo"
 	}
 
 	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
@@ -94,15 +99,15 @@ func main() {
 				logger := logger.WithField("task", task.Name)
 
 				if task.Mount == "" {
-					task.Mount = "/ci/repo"
+					task.Mount = cimnt
 
-					logger.Debug("mount point set to /ci/repo")
+					logger.Debugf("mount point set to %v", task.Mount)
 				}
 
 				if task.Shell == "" {
 					task.Shell = "sh"
 
-					logger.Debug("shell set to sh")
+					logger.Debugf("shell set to %v", task.Shell)
 				}
 
 				spec := run.ContainerSpec{
