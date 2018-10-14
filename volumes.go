@@ -7,12 +7,15 @@ import (
 )
 
 func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string {
+	logger := logger.WithField("remote", remote)
+
 	name := "runlet-test-vol"
 
 	// TODO: don't hard-code this maybe?
 	err := agent.VerifyImagePresent("run-ci/git-clone", true)
 	if err != nil {
-		log.Fatalf("error verifying image git-clone image presence: %v", err)
+		logger.WithField("error", err).
+			Fatalf("unable to verify git-clone image presence")
 	}
 
 	vol, err := client.CreateVolume(docker.CreateVolumeOptions{
@@ -20,10 +23,12 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 		Name: name,
 	})
 	if err != nil {
-		log.Fatalf("error creating test volume: %v", err)
+		logger.WithField("error", err).
+			Fatalf("unable to create test volume")
 	}
 
-	log.Debugf("created volume: %v", vol.Name)
+	logger = logger.WithField("vol", vol.Name)
+	logger.Debugf("created volume: %v", vol.Name)
 
 	spec := run.ContainerSpec{
 		// TODO: fix all this hard-coded crap
@@ -36,12 +41,14 @@ func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string
 		},
 	}
 
+	logger.Debug("populating volumes")
+
 	id, status, err := agent.RunContainer(spec)
 	if err != nil {
 		log.Fatalf("error running git clone container %v: %v", id, err)
 	}
 
-	log.Debugf("git clone container exited with status %v", status)
+	logger.Debugf("git clone container exited with status %v", status)
 
 	return name
 }
