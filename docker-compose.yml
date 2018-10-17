@@ -15,3 +15,7 @@ services:
     - "4222:4222"
     - "5222:5222"
     - "6222:6222"
+  store:
+    image: postgres
+    ports:
+    - "5432:5432"
