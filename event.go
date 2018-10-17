@@ -12,4 +12,6 @@ type Event struct {
 
 // Steps is a list of mappings between a name and a group of
 // tasks to run.
+//
+// TODO: make this match what's in gitlab.com/run-ci/webhooks/pkg
 type Steps map[string][]run.Task
