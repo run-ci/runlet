@@ -23,22 +23,31 @@ type Pipeline struct {
 	Remote string `db:"remote"`
 	Name   string `db:"name"`
 	Ref    string `db:"ref"`
-	Runs   []int  `db:"runs"`
+	Runs   []Run  `db:"-"`
 }
 
 type Run struct {
-	ID      int        `db:"id"`
+	Count   int        `db:"id"`
 	Start   *time.Time `db:"start"`
 	End     *time.Time `db:"end"`
 	Success bool       `db:"success"`
-	Steps   []int      `db:"steps"`
+	Steps   []Step     `db:"-"`
+
+	PipelineRemote string `db:"pipeline_remote"`
+	PipelineName   string `db:"pipeline_name"`
 }
 
 type Step struct {
-	ID      int    `db:"id"`
-	Name    string `db:"name"`
-	Tasks   []int  `db:"tasks"`
-	Success bool   `db:"success"`
+	ID      int        `db:"id"`
+	Name    string     `db:"name"`
+	Start   *time.Time `db:"start"`
+	End     *time.Time `db:"end"`
+	Tasks   []Task     `db:"-"`
+	Success bool       `db:"success"`
+
+	PipelineRemote string `db:"pipeline_remote"`
+	PipelineName   string `db:"pipeline_name"`
+	RunCount       int    `db:"run_count"`
 }
 
 type Task struct {

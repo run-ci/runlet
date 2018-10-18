@@ -23,13 +23,15 @@ CREATE TABLE runs (
 CREATE TABLE steps (
     id SERIAL NOT NULL UNIQUE,
     name varchar(255) NOT NULL,
+    start_time timestamp NOT NULL,
+    end_time timestamp NOT NULL,
     success boolean NOT NULL,
 
-    run_remote varchar(255) NOT NULL,
-    run_name varchar(255) NOT NULL,
+    pipeline_remote varchar(255) NOT NULL,
+    pipeline_name varchar(255) NOT NULL,
     run_count INTEGER NOT NULL,
 
-    FOREIGN KEY (run_remote, run_name, run_count) REFERENCES runs(pipeline_remote, pipeline_name, count),
+    FOREIGN KEY (pipeline_remote, pipeline_name, run_count) REFERENCES runs(pipeline_remote, pipeline_name, count),
     PRIMARY KEY (id)
 );
 
