@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"strings"
+	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
 	nats "github.com/nats-io/go-nats"
@@ -97,8 +98,7 @@ func main() {
 
 		p := &store.Pipeline{
 			Remote: ev.Remote,
-			// TODO: don't hard-code this...
-			Name: "default",
+			Name:   ev.Name,
 		}
 
 		err = st.LoadPipeline(p)
@@ -108,16 +108,39 @@ func main() {
 			continue
 		}
 
-		for name, tasks := range ev.Steps {
+		start := time.Now()
+		r := store.Run{
+			Start: &start,
+		}
+		p.Runs = append(p.Runs, r)
+
+		for _, step := range ev.Steps {
 			logger := logger.WithFields(log.Fields{
-				"remote": ev.Remote,
-				"step":   name,
+				"remote": p.Remote,
+				"name":   p.Name,
+				"step":   step.Name,
 			})
 
 			logger.Debug("running step")
 
-			for _, task := range tasks {
+			start := time.Now()
+			s := store.Step{
+				Name:  step.Name,
+				Start: &start,
+			}
+			r.Steps = append(r.Steps, s)
+
+			for _, task := range step.Tasks {
 				logger := logger.WithField("task", task.Name)
+
+				logger.Debug("running task")
+
+				start := time.Now()
+				t := store.Task{
+					Name:  task.Name,
+					Start: &start,
+				}
+				s.Tasks = append(s.Tasks, t)
 
 				if task.Mount == "" {
 					task.Mount = cimnt
@@ -141,6 +164,8 @@ func main() {
 					},
 				}
 
+				logger.Debug("running task container")
+
 				id, status, err := agent.RunContainer(spec)
 				logger = logger.WithField("container_id", id)
 				if err != nil {
@@ -158,6 +183,13 @@ func main() {
 				"error": err,
 				"vol":   vol,
 			}).Error("unable to delete volume")
+		}
+
+		err = st.SavePipeline(*p)
+		if err != nil {
+			logger.WithFields(log.Fields{
+				"error": err,
+			}).Error("unable sto save pipeline")
 		}
 	}
 }
