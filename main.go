@@ -7,8 +7,9 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 	nats "github.com/nats-io/go-nats"
-	log "github.com/sirupsen/logrus"
 	"github.com/run-ci/run/pkg/run"
+	"github.com/run-ci/runlet/store"
+	log "github.com/sirupsen/logrus"
 )
 
 var natsURL, gitimg, cimnt string
@@ -56,21 +57,28 @@ func main() {
 	evq, teardown := SubscribeToQueue(natsURL, "pipelines", "runlet")
 	defer teardown()
 
+	st, err := store.NewPostgres("postgres://runlet_test:runlet_test@store:5432/runlet_test?sslmode=disable")
+	if err != nil {
+		logger.WithField("error", err).Fatal("unable to connect to postgres")
+	}
+
+	logger.Info("connecting to database")
+
 	client, err := docker.NewClient("unix:///var/run/docker.sock")
 	if err != nil {
 		logger.WithFields(log.Fields{
 			"error": err,
-		}).Fatalf("error opening docker socket")
+		}).Fatal("error opening docker socket")
 	}
 
-	logger.Debug("initialized docker client")
+	logger.Info("initialized docker client")
 
 	agent, err := run.NewAgent(client)
 	if err != nil {
-		log.Fatalf("error initializing run agent with our client: %v", err)
+		logger.WithField("error", err).Fatal("unable to initialize run agent")
 	}
 
-	logger.Debug("initialized run agent")
+	logger.Info("initialized run agent")
 
 	for msg := range evq {
 		logger.Debugf("processing message %s", msg.Data)
@@ -86,6 +94,17 @@ func main() {
 		}
 
 		vol := initCIVolume(agent, client, ev.Remote)
+
+		p := &store.Pipeline{
+			Remote: ev.Remote,
+		}
+
+		err = st.LoadPipeline(p)
+		if err != nil {
+			logger.WithField("error", err).Error("error loading pipeline from store, skipping")
+
+			continue
+		}
 
 		for name, tasks := range ev.Steps {
 			logger := logger.WithFields(log.Fields{
