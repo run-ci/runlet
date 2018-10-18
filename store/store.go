@@ -22,8 +22,7 @@ type PipelineStore interface {
 type Pipeline struct {
 	Remote string `db:"remote"`
 	Name   string `db:"name"`
-	Branch string `db:"branch"`
-	Tag    string `db:"tag"`
+	Ref    string `db:"ref"`
 	Runs   []int  `db:"runs"`
 }
 
@@ -36,12 +35,10 @@ type Run struct {
 }
 
 type Step struct {
-	ID       int    `db:"id"`
-	Remote   string `db:"remote"`
-	Pipeline string `db:"pipeline"`
-	Name     string `db:"name"`
-	Tasks    []int  `db:"tasks"`
-	Success  bool   `db:"success"`
+	ID      int    `db:"id"`
+	Name    string `db:"name"`
+	Tasks   []int  `db:"tasks"`
+	Success bool   `db:"success"`
 }
 
 type Task struct {

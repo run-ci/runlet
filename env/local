@@ -1,1 +1,8 @@
 export TEST_EVENT=$(cat examples/test-pipeline.json)
+
+export RUNLET_NATS_URL=nats://queue:4222
+export RUNLET_LOG_LEVEL=debug
+
+export POSTGRES_USER=runlet_test
+export POSTGRES_PASSWORD=runlet_test
+export POSTGRES_DB=runlet_test

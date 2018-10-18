@@ -5,8 +5,8 @@ services:
   runlet:
     image: ubuntu:18.04
     environment:
-      RUNLET_NATS_URL: nats://queue:4222
-      RUNLET_LOG_LEVEL: debug
+    - RUNLET_NATS_URL
+    - RUNLET_LOG_LEVEL
     volumes:
     - "/var/run/docker.sock:/var/run/docker.sock"
     - "./runlet:/bin/runlet"
@@ -22,8 +22,8 @@ services:
     ports:
     - "5432:5432"
     environment:
-      POSTGRES_USER: runlet_test
-      POSTGRES_PASSWORD: runlet_test
-      POSTGRES_DB: runlet_test
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
+    - POSTGRES_DB
     volumes:
     - "./dockerfiles/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
