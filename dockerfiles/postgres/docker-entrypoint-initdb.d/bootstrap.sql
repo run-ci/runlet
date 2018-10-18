@@ -3,7 +3,8 @@ CREATE TABLE pipelines (
     ref varchar(255) NOT NULL,
     name varchar(255) NOT NULL,
     
-    CONSTRAINT remote_ref PRIMARY KEY(remote, ref)
+    PRIMARY KEY(remote, name),
+    UNIQUE(remote, name)
 );
 
 CREATE TABLE runs (
@@ -12,11 +13,11 @@ CREATE TABLE runs (
     end_time timestamp NOT NULL,
     success boolean NOT NULL,
 
-    remote varchar(255) NOT NULL,
-    ref varchar(255) NOT NULL,
+    pipeline_remote varchar(255) NOT NULL,
+    pipeline_name varchar(255) NOT NULL,
 
-    FOREIGN KEY (remote, ref) REFERENCES pipelines(remote, ref),
-    PRIMARY KEY (remote, ref, count)
+    FOREIGN KEY (pipeline_remote, pipeline_name) REFERENCES pipelines(remote, name),
+    PRIMARY KEY (pipeline_remote, pipeline_name, count)
 );
 
 CREATE TABLE steps (
@@ -24,11 +25,11 @@ CREATE TABLE steps (
     name varchar(255) NOT NULL,
     success boolean NOT NULL,
 
-    remote varchar(255) NOT NULL,
-    ref varchar(255) NOT NULL,
-    count INTEGER NOT NULL,
+    run_remote varchar(255) NOT NULL,
+    run_name varchar(255) NOT NULL,
+    run_count INTEGER NOT NULL,
 
-    FOREIGN KEY (remote, ref, count) REFERENCES runs(remote, ref, count),
+    FOREIGN KEY (run_remote, run_name, run_count) REFERENCES runs(pipeline_remote, pipeline_name, count),
     PRIMARY KEY (id)
 );
 
@@ -44,3 +45,7 @@ CREATE TABLE tasks (
     FOREIGN KEY (step_id) REFERENCES steps(id),
     PRIMARY KEY (id)
 );
+
+INSERT INTO pipelines (remote, ref, name)
+VALUES
+    ('https://gitlab.com/run-ci/runlet', 'master', 'default');

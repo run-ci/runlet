@@ -44,14 +44,19 @@ func (st *Postgres) LoadPipeline(p *Pipeline) error {
 		"pipeline": p,
 	})
 
+	q := "SELECT * FROM pipelines WHERE pipelines.remote = :remote AND pipelines.name = :name"
+	logger = logger.WithField("query", q)
+
 	logger.Debug("loading pipeline")
 
-	rows, err := st.db.NamedQuery("SELECT * FROM pipelines WHERE pipelines.remote = :remote", p)
+	rows, err := st.db.NamedQuery(q, p)
 	if err != nil {
 		logger.WithField("error", err).Debug("unable to load pipeline")
 
 		return err
 	}
+
+	logger.Debug("scanning rows")
 
 	for rows.Next() {
 		return rows.StructScan(p)

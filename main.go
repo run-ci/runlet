@@ -97,6 +97,8 @@ func main() {
 
 		p := &store.Pipeline{
 			Remote: ev.Remote,
+			// TODO: don't hard-code this...
+			Name: "default",
 		}
 
 		err = st.LoadPipeline(p)
