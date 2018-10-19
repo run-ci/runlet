@@ -51,3 +51,17 @@ CREATE TABLE tasks (
 INSERT INTO pipelines (remote, ref, name)
 VALUES
     ('https://gitlab.com/run-ci/runlet', 'master', 'default');
+
+-- TODO: clean this up, or don't even put it in here. It's just staying in here for now so I have somewhere to put it
+-- and I can get some sleep.
+
+-- Inserting run with its steps. This can be expanded for the tasks as well.
+WITH run_data AS (
+    INSERT INTO runs (start_time, end_time, success, pipeline_remote, pipeline_name)
+    VALUES
+        (current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default')
+    RETURNING *
+)
+INSERT INTO steps (name, start_time, end_time, success, pipeline_remote, pipeline_name, run_count)
+    SELECT 'write', current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default', run_data.count
+    FROM run_data;
