@@ -61,7 +61,12 @@ WITH run_data AS (
     VALUES
         (current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default')
     RETURNING *
+), step_data AS (
+    INSERT INTO steps (name, start_time, end_time, success, pipeline_remote, pipeline_name, run_count)
+        SELECT 'write', current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default', run_data.count
+        FROM run_data
+    RETURNING *
 )
-INSERT INTO steps (name, start_time, end_time, success, pipeline_remote, pipeline_name, run_count)
-    SELECT 'write', current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default', run_data.count
-    FROM run_data;
+INSERT INTO tasks (name, start_time, end_time, success, step_id)
+    SELECT 'write', current_timestamp, current_timestamp, true, step_data.id
+    FROM step_data;
