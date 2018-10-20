@@ -8,7 +8,7 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 	nats "github.com/nats-io/go-nats"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/run-ci/run/pkg/run"
+	"github.com/run-ci/run/pkg/run"
 )
 
 var natsURL, gitimg, cimnt string

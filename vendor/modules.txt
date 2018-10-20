@@ -62,10 +62,10 @@ github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/runc/libcontainer/user
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
+# github.com/run-ci/run v0.0.0-20181020161700-901ce79e9477
+github.com/run-ci/run/pkg/run
 # github.com/sirupsen/logrus v1.1.1
 github.com/sirupsen/logrus
-# gitlab.com/run-ci/run v0.0.0-20181013140729-50bce169dfbb
-gitlab.com/run-ci/run/pkg/run
 # golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33

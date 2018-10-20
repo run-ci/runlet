@@ -9,7 +9,7 @@ description: |
 
 image: golang:1.11-stretch
 
-mount: /go/src/gitlab.com/run-ci/runlet
+mount: /go/src/github.com/run-ci/runlet
 
 command: go build -v
 

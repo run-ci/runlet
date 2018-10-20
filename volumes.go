@@ -6,7 +6,7 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-	"gitlab.com/run-ci/run/pkg/run"
+	"github.com/run-ci/run/pkg/run"
 )
 
 func initCIVolume(agent *run.Agent, client *docker.Client, remote string) string {

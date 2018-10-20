@@ -1,5 +1,5 @@
 {
-    "remote": "https://gitlab.com/run-ci/run",
+    "remote": "https://github.com/run-ci/run",
     "steps": {
         "write_log": [
             {
