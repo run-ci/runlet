@@ -1,9 +1,8 @@
 package store
 
 import (
+	"database/sql"
 	"errors"
-
-	sql "github.com/jmoiron/sqlx"
 
 	_ "github.com/lib/pq" // load the postgres driver
 	log "github.com/sirupsen/logrus"
@@ -44,23 +43,20 @@ func (st *Postgres) LoadPipeline(p *Pipeline) error {
 		"pipeline": p,
 	})
 
-	q := "SELECT * FROM pipelines WHERE pipelines.remote = :remote AND pipelines.name = :name"
+	q := `SELECT remote, ref, name FROM pipelines
+	WHERE pipelines.remote = $1 AND pipelines.name = $2`
 	logger = logger.WithField("query", q)
 
 	logger.Debug("loading pipeline")
 
-	rows, err := st.db.NamedQuery(q, p)
-	if err != nil {
-		logger.WithField("error", err).Debug("unable to load pipeline")
-
-		return err
-	}
+	row := st.db.QueryRow(q, p.Remote, p.Name)
 
 	logger.Debug("scanning rows")
 
-	for rows.Next() {
-		return rows.StructScan(p)
+	err := row.Scan(&p.Remote, &p.Ref, &p.Name)
+	if err == sql.ErrNoRows {
+		return errors.New("pipeline not found")
 	}
 
-	return errors.New("pipeline not found")
+	return err
 }

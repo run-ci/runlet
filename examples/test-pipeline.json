@@ -1,5 +1,5 @@
 {
-    "remote": "https://gitlab.com/run-ci/runlet",
+    "remote": "https://github.com/run-ci/runlet",
     "name": "default",
     "steps": [
         {

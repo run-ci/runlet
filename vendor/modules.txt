@@ -45,9 +45,6 @@ github.com/fsouza/go-dockerclient/internal/term
 github.com/gogo/protobuf/proto
 # github.com/google/uuid v1.0.0
 github.com/google/uuid
-# github.com/jmoiron/sqlx v1.2.0
-github.com/jmoiron/sqlx
-github.com/jmoiron/sqlx/reflectx
 # github.com/konsorten/go-windows-terminal-sequences v0.0.0-20180402223658-b729f2633dfe
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/lib/pq v1.0.0
