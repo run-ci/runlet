@@ -58,8 +58,13 @@ func (st *Postgres) CreateRun(r *Run) error {
 	})
 
 	sqlinsert := `
-	INSERT INTO runs (start_time, end_time, success, pipeline_remote, pipeline_name)
-	VALUES ($1, $2, $3, $4, $5)
+	WITH run_count AS (
+		SELECT COUNT(*) from runs
+		WHERE runs.pipeline_remote = $4 AND runs.pipeline_name = $5
+	)
+	INSERT INTO runs (count, start_time, end_time, success, pipeline_remote, pipeline_name)
+	SELECT run_count.count+1, $1, $2, $3, $4, $5
+	FROM run_count
 	RETURNING count
 	`
 

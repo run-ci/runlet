@@ -2,15 +2,13 @@ CREATE TABLE pipelines (
     remote varchar(255) NOT NULL UNIQUE,
     ref varchar(255) NOT NULL,
     name varchar(255) NOT NULL,
-    
+
     PRIMARY KEY(remote, name),
     UNIQUE(remote, name)
 );
 
 CREATE TABLE runs (
-    -- TODO: fix this. This count won't be accurate. This should be an ID and another
-    -- way needs to be found to determine the count.
-    count SERIAL NOT NULL UNIQUE,
+    count INTEGER NOT NULL,
     start_time timestamp NOT NULL,
     end_time timestamp,
     success boolean,
@@ -52,4 +50,5 @@ CREATE TABLE tasks (
 
 INSERT INTO pipelines (remote, ref, name)
 VALUES
-    ('https://github.com/run-ci/runlet', 'master', 'default');
+    ('https://github.com/run-ci/runlet', 'master', 'default'),
+    ('https://github.com/run-ci/run', 'master', 'default');
