@@ -2,16 +2,18 @@ package store
 
 import (
 	"database/sql"
-	"errors"
 
 	_ "github.com/lib/pq" // load the postgres driver
 	log "github.com/sirupsen/logrus"
 )
 
+// Postgres is a PostgreSQL database that's also a PipelineStore.
 type Postgres struct {
 	db *sql.DB
 }
 
+// NewPostgres returns a PipelineStore backed by PostgreSQL. It connects to the
+// database using connstr.
 func NewPostgres(connstr string) (PipelineStore, error) {
 	logger = logger.WithField("store", "postgres")
 
@@ -28,6 +30,8 @@ func NewPostgres(connstr string) (PipelineStore, error) {
 	}, nil
 }
 
+// ReadPipeline is part of the PipelineStore interface. If the pipeline
+// isn't found, it returns ErrPipelineNotFound.
 func (st *Postgres) ReadPipeline(p *Pipeline) error {
 	logger := logger.WithFields(log.Fields{
 		"pipeline": p,
@@ -45,12 +49,14 @@ func (st *Postgres) ReadPipeline(p *Pipeline) error {
 
 	err := row.Scan(&p.Remote, &p.Ref, &p.Name)
 	if err == sql.ErrNoRows {
-		return errors.New("pipeline not found")
+		return ErrPipelineNotFound
 	}
 
 	return err
 }
 
+// CreateRun is part of the PipelineStore interface. It creates a new pipeline
+// run in the database and sets the count.
 func (st *Postgres) CreateRun(r *Run) error {
 	logger := logger.WithFields(log.Fields{
 		"pipeline_remote": r.PipelineRemote,
@@ -84,6 +90,8 @@ func (st *Postgres) CreateRun(r *Run) error {
 	return nil
 }
 
+// CreateStep is part of the PipelineStore interface. It creates a new run step
+// in the database and sets the ID.
 func (st *Postgres) CreateStep(s *Step) error {
 	logger := logger.WithFields(log.Fields{
 		"pipeline_remote": s.PipelineRemote,
@@ -114,6 +122,8 @@ func (st *Postgres) CreateStep(s *Step) error {
 	return nil
 }
 
+// CreateTask is part of the PipelineStore interface. It creates a new task in
+// the database and sets the ID.
 func (st *Postgres) CreateTask(t *Task) error {
 	logger := logger.WithFields(log.Fields{
 		"name":    t.Name,
@@ -142,6 +152,8 @@ func (st *Postgres) CreateTask(t *Task) error {
 	return nil
 }
 
+// UpdateRun implements part of PipelineStore. It updates a run task's success
+// status and end time.
 func (st *Postgres) UpdateRun(r *Run) error {
 	logger := logger.WithFields(log.Fields{
 		"pipeline_remote": r.PipelineRemote,
@@ -166,6 +178,8 @@ func (st *Postgres) UpdateRun(r *Run) error {
 	return nil
 }
 
+// UpdateStep is part of the PipelineStore interface. It update's a step's
+// success status and end time with what's passed in.
 func (st *Postgres) UpdateStep(s *Step) error {
 	logger := logger.WithFields(log.Fields{
 		"pipeline_remote": s.PipelineRemote,
@@ -192,6 +206,8 @@ func (st *Postgres) UpdateStep(s *Step) error {
 	return nil
 }
 
+// UpdateTask is part of the PipelineStore interface. It updates the task's
+// success status and end time with what's passed in.
 func (st *Postgres) UpdateTask(t *Task) error {
 	logger := logger.WithFields(log.Fields{
 		"name":    t.Name,
