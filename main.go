@@ -2,34 +2,22 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
 	nats "github.com/nats-io/go-nats"
-	log "github.com/sirupsen/logrus"
 	"github.com/run-ci/run/pkg/run"
+	"github.com/run-ci/runlet/store"
+	log "github.com/sirupsen/logrus"
 )
 
-var natsURL, gitimg, cimnt string
+var natsURL, gitimg, cimnt, pgconnstr string
 var logger *log.Entry
 
 func init() {
-	natsURL = os.Getenv("RUNLET_NATS_URL")
-	if natsURL == "" {
-		natsURL = nats.DefaultURL
-	}
-
-	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
-	if gitimg == "" {
-		gitimg = "run-ci/git-clone"
-	}
-
-	cimnt = os.Getenv("RUNLET_CI_MOUNT")
-	if cimnt == "" {
-		cimnt = "/ci/repo"
-	}
-
 	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
 	case "debug", "trace":
 		log.SetLevel(log.DebugLevel)
@@ -48,6 +36,50 @@ func init() {
 	logger = log.WithFields(log.Fields{
 		"package": "main",
 	})
+
+	natsURL = os.Getenv("RUNLET_NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
+	if gitimg == "" {
+		gitimg = "run-ci/git-clone"
+	}
+
+	cimnt = os.Getenv("RUNLET_CI_MOUNT")
+	if cimnt == "" {
+		cimnt = "/ci/repo"
+	}
+
+	pguser := os.Getenv("RUNLET_POSTGRES_USER")
+	if pguser == "" {
+		logger.Fatal("need RUNLET_POSTGRES_USER")
+	}
+
+	pgpass := os.Getenv("RUNLET_POSTGRES_PASS")
+	if pgpass == "" {
+		logger.Fatal("need RUNLET_POSTGRES_PASS")
+	}
+
+	pghref := os.Getenv("RUNLET_POSTGRES_HREF")
+	if pghref == "" {
+		logger.Fatal("need RUNLET_POSTGRES_HREF")
+	}
+
+	pgdb := os.Getenv("RUNLET_POSTGRES_DB")
+	if pgdb == "" {
+		logger.Fatal("need RUNLET_POSTGRES_DB")
+	}
+
+	pgssl := os.Getenv("RUNLET_POSTGRES_SSL")
+	if pgssl == "" {
+		logger.Info("RUNLET_POSTGRES_SSL not set - defaulting to verify-full")
+		pgssl = "verify-full"
+	}
+
+	pgconnstr = fmt.Sprintf("postgres://%v:%v@%v/%v?sslmode=%v",
+		pguser, pgpass, pghref, pgdb, pgssl)
 }
 
 func main() {
@@ -56,21 +88,28 @@ func main() {
 	evq, teardown := SubscribeToQueue(natsURL, "pipelines", "runlet")
 	defer teardown()
 
+	st, err := store.NewPostgres(pgconnstr)
+	if err != nil {
+		logger.WithField("error", err).Fatal("unable to connect to postgres")
+	}
+
+	logger.Info("connecting to database")
+
 	client, err := docker.NewClient("unix:///var/run/docker.sock")
 	if err != nil {
 		logger.WithFields(log.Fields{
 			"error": err,
-		}).Fatalf("error opening docker socket")
+		}).Fatal("error opening docker socket")
 	}
 
-	logger.Debug("initialized docker client")
+	logger.Info("initialized docker client")
 
 	agent, err := run.NewAgent(client)
 	if err != nil {
-		log.Fatalf("error initializing run agent with our client: %v", err)
+		logger.WithField("error", err).Fatal("unable to initialize run agent")
 	}
 
-	logger.Debug("initialized run agent")
+	logger.Info("initialized run agent")
 
 	for msg := range evq {
 		logger.Debugf("processing message %s", msg.Data)
@@ -87,16 +126,96 @@ func main() {
 
 		vol := initCIVolume(agent, client, ev.Remote)
 
-		for name, tasks := range ev.Steps {
+		p := &store.Pipeline{
+			Remote: ev.Remote,
+			Name:   ev.Name,
+		}
+
+		logger := logger.WithFields(log.Fields{
+			"pipeline_remote": p.Remote,
+			"pipeline_name":   p.Name,
+		})
+
+		logger.Debug("loading pipeline")
+
+		err = st.ReadPipeline(p)
+		if err != nil {
+			logger.WithField("error", err).Error("error loading pipeline from store, skipping")
+
+			continue
+		}
+
+		start := time.Now()
+		r := store.Run{
+			Start:          &start,
+			PipelineName:   p.Name,
+			PipelineRemote: p.Remote,
+		}
+		p.Runs = append(p.Runs, r)
+
+		logger.Debug("creating new pipeline run")
+
+		err = st.CreateRun(&r)
+		if err != nil {
+			logger.WithField("error", err).Error("unable to save pipeline run")
+
+			continue
+		}
+
+		for _, step := range ev.Steps {
+			// The pipeline could have been marked unsuccessful in some task. At
+			// that point, the right thing to do is to break out of this loop.
+			// Since the tasks are run in their own loop, they can't break to the
+			// right spot, so this check needs to be here.
+			if r.Failed() {
+				break
+			}
+
 			logger := logger.WithFields(log.Fields{
-				"remote": ev.Remote,
-				"step":   name,
+				"step": step.Name,
 			})
 
 			logger.Debug("running step")
 
-			for _, task := range tasks {
+			start := time.Now()
+			s := store.Step{
+				Name:           step.Name,
+				Start:          &start,
+				RunCount:       r.Count,
+				PipelineName:   r.PipelineName,
+				PipelineRemote: r.PipelineRemote,
+			}
+			r.Steps = append(r.Steps, s)
+
+			err = st.CreateStep(&s)
+			if err != nil {
+				logger.WithField("error", err).Error("unable to save step, aborting")
+
+				s.MarkSuccess(false)
+				break
+			}
+
+			for _, task := range step.Tasks {
 				logger := logger.WithField("task", task.Name)
+
+				logger.Debug("running task")
+
+				start := time.Now()
+				t := store.Task{
+					Name:   task.Name,
+					Start:  &start,
+					StepID: s.ID,
+				}
+				s.Tasks = append(s.Tasks, t)
+
+				err := st.CreateTask(&t)
+				if err != nil {
+					logger.WithField("error", err).Error("unable to save task, aborting")
+
+					s.MarkSuccess(false)
+					r.MarkSuccess(false)
+					break
+				}
 
 				if task.Mount == "" {
 					task.Mount = cimnt
@@ -120,14 +239,34 @@ func main() {
 					},
 				}
 
+				logger.Debug("running task container")
+
 				id, status, err := agent.RunContainer(spec)
 				logger = logger.WithField("container_id", id)
 				if err != nil {
 					logger.WithField("error", err).
-						Fatalf("error running task container")
+						Error("error running task container")
 				}
 
 				logger.Debugf("task container exited with status %v", status)
+
+				t.SetEnd()
+				t.MarkSuccess(true)
+				err = st.UpdateTask(&t)
+				if err != nil {
+					logger.WithField("error", err).Error("unable to save pipeline task, continuing")
+
+					// Continuing here is safe because the task itself finished successfully.
+				}
+			}
+
+			s.SetEnd()
+			s.MarkSuccess(true)
+			err = st.UpdateStep(&s)
+			if err != nil {
+				logger.WithField("error", err).Error("unable to save pipeline step, continuing")
+
+				// Continuing here is safe because the step itself finished successfully.
 			}
 		}
 
@@ -137,6 +276,15 @@ func main() {
 				"error": err,
 				"vol":   vol,
 			}).Error("unable to delete volume")
+		}
+
+		r.SetEnd()
+		r.MarkSuccess(true)
+		err = st.UpdateRun(&r)
+		if err != nil {
+			logger.WithFields(log.Fields{
+				"error": err,
+			}).Error("unable to save run")
 		}
 	}
 }

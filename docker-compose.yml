@@ -3,15 +3,32 @@ version: "3"
 
 services:
   runlet:
-    build: .
+    image: ubuntu:18.04
     environment:
-      RUNLET_NATS_URL: nats://queue:4222
-      RUNLET_LOG_LEVEL: debug
+    - RUNLET_NATS_URL
+    - RUNLET_LOG_LEVEL
+    - RUNLET_POSTGRES_USER
+    - RUNLET_POSTGRES_PASS
+    - RUNLET_POSTGRES_DB
+    - RUNLET_POSTGRES_HREF
+    - RUNLET_POSTGRES_SSL
     volumes:
     - "/var/run/docker.sock:/var/run/docker.sock"
+    - "./runlet:/bin/runlet"
+    command: /bin/runlet
   queue:
     image: nats
     ports:
     - "4222:4222"
     - "5222:5222"
     - "6222:6222"
+  store:
+    image: postgres
+    ports:
+    - "5432:5432"
+    environment:
+    - POSTGRES_USER
+    - POSTGRES_PASSWORD
+    - POSTGRES_DB
+    volumes:
+    - "./dockerfiles/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"

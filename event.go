@@ -7,11 +7,12 @@ import (
 // Event is a message that comes in requesting a pipeline run.
 type Event struct {
 	Remote string `json:"remote"`
-	Steps  Steps  `json:"steps"`
+	Name   string `json:"name"`
+	Steps  []Step `json:"steps"`
 }
 
-// Steps is a list of mappings between a name and a group of
-// tasks to run.
-//
-// TODO: make this match what's in github.com/run-ci/webhooks/pkg
-type Steps map[string][]run.Task
+// Step is a grouping of tasks that can be run in parallel.
+type Step struct {
+	Name  string     `json:"name"`
+	Tasks []run.Task `json:"tasks"`
+}

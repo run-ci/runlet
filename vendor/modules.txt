@@ -47,6 +47,9 @@ github.com/gogo/protobuf/proto
 github.com/google/uuid
 # github.com/konsorten/go-windows-terminal-sequences v0.0.0-20180402223658-b729f2633dfe
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/lib/pq v1.0.0
+github.com/lib/pq
+github.com/lib/pq/oid
 # github.com/nats-io/go-nats v1.6.0
 github.com/nats-io/go-nats
 github.com/nats-io/go-nats/encoders/builtin

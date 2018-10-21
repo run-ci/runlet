@@ -1,1 +1,14 @@
 export TEST_EVENT=$(cat examples/test-pipeline.json)
+
+export RUNLET_NATS_URL=nats://queue:4222
+export RUNLET_LOG_LEVEL=debug
+
+export POSTGRES_USER=runlet_test
+export POSTGRES_PASSWORD=runlet_test
+export POSTGRES_DB=runlet_test
+
+export RUNLET_POSTGRES_USER=$POSTGRES_USER
+export RUNLET_POSTGRES_PASS=$POSTGRES_PASSWORD
+export RUNLET_POSTGRES_DB=$POSTGRES_DB
+export RUNLET_POSTGRES_HREF=store:5432 # This is the compose service
+export RUNLET_POSTGRES_SSL=disable
