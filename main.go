@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -13,25 +14,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var natsURL, gitimg, cimnt string
+var natsURL, gitimg, cimnt, pgconnstr string
 var logger *log.Entry
 
 func init() {
-	natsURL = os.Getenv("RUNLET_NATS_URL")
-	if natsURL == "" {
-		natsURL = nats.DefaultURL
-	}
-
-	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
-	if gitimg == "" {
-		gitimg = "run-ci/git-clone"
-	}
-
-	cimnt = os.Getenv("RUNLET_CI_MOUNT")
-	if cimnt == "" {
-		cimnt = "/ci/repo"
-	}
-
 	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
 	case "debug", "trace":
 		log.SetLevel(log.DebugLevel)
@@ -50,6 +36,50 @@ func init() {
 	logger = log.WithFields(log.Fields{
 		"package": "main",
 	})
+
+	natsURL = os.Getenv("RUNLET_NATS_URL")
+	if natsURL == "" {
+		natsURL = nats.DefaultURL
+	}
+
+	gitimg = os.Getenv("RUNLET_GIT_IMAGE")
+	if gitimg == "" {
+		gitimg = "run-ci/git-clone"
+	}
+
+	cimnt = os.Getenv("RUNLET_CI_MOUNT")
+	if cimnt == "" {
+		cimnt = "/ci/repo"
+	}
+
+	pguser := os.Getenv("RUNLET_POSTGRES_USER")
+	if pguser == "" {
+		logger.Fatal("need RUNLET_POSTGRES_USER")
+	}
+
+	pgpass := os.Getenv("RUNLET_POSTGRES_PASS")
+	if pgpass == "" {
+		logger.Fatal("need RUNLET_POSTGRES_PASS")
+	}
+
+	pghref := os.Getenv("RUNLET_POSTGRES_HREF")
+	if pghref == "" {
+		logger.Fatal("need RUNLET_POSTGRES_HREF")
+	}
+
+	pgdb := os.Getenv("RUNLET_POSTGRES_DB")
+	if pgdb == "" {
+		logger.Fatal("need RUNLET_POSTGRES_DB")
+	}
+
+	pgssl := os.Getenv("RUNLET_POSTGRES_SSL")
+	if pgssl == "" {
+		logger.Info("RUNLET_POSTGRES_SSL not set - defaulting to verify-full")
+		pgssl = "verify-full"
+	}
+
+	pgconnstr = fmt.Sprintf("postgres://%v:%v@%v/%v?sslmode=%v",
+		pguser, pgpass, pghref, pgdb, pgssl)
 }
 
 func main() {
@@ -58,7 +88,7 @@ func main() {
 	evq, teardown := SubscribeToQueue(natsURL, "pipelines", "runlet")
 	defer teardown()
 
-	st, err := store.NewPostgres("postgres://runlet_test:runlet_test@store:5432/runlet_test?sslmode=disable")
+	st, err := store.NewPostgres(pgconnstr)
 	if err != nil {
 		logger.WithField("error", err).Fatal("unable to connect to postgres")
 	}

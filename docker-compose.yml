@@ -7,6 +7,11 @@ services:
     environment:
     - RUNLET_NATS_URL
     - RUNLET_LOG_LEVEL
+    - RUNLET_POSTGRES_USER
+    - RUNLET_POSTGRES_PASS
+    - RUNLET_POSTGRES_DB
+    - RUNLET_POSTGRES_HREF
+    - RUNLET_POSTGRES_SSL
     volumes:
     - "/var/run/docker.sock:/var/run/docker.sock"
     - "./runlet:/bin/runlet"
