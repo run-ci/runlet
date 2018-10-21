@@ -15,8 +15,15 @@ func init() {
 }
 
 type PipelineStore interface {
-	SavePipeline(Pipeline) error
-	LoadPipeline(*Pipeline) error
+	ReadPipeline(*Pipeline) error
+
+	CreateRun(*Run) error
+	CreateStep(*Step) error
+	CreateTask(*Task) error
+
+	UpdateRun(*Run) error
+	UpdateStep(*Step) error
+	UpdateTask(*Task) error
 }
 
 type Pipeline struct {
@@ -30,7 +37,7 @@ type Run struct {
 	Count   int        `db:"id"`
 	Start   *time.Time `db:"start"`
 	End     *time.Time `db:"end"`
-	Success bool       `db:"success"`
+	Success *bool      `db:"success"` // mid-run is neither success nor failure
 	Steps   []Step     `db:"-"`
 
 	PipelineRemote string `db:"pipeline_remote"`
@@ -43,7 +50,7 @@ type Step struct {
 	Start   *time.Time `db:"start"`
 	End     *time.Time `db:"end"`
 	Tasks   []Task     `db:"-"`
-	Success bool       `db:"success"`
+	Success *bool      `db:"success"` // mid-run is neither success nor failure
 
 	PipelineRemote string `db:"pipeline_remote"`
 	PipelineName   string `db:"pipeline_name"`
@@ -55,5 +62,53 @@ type Task struct {
 	Name    string     `db:"name"`
 	Start   *time.Time `db:"start"`
 	End     *time.Time `db:"end"`
-	Success bool       `db:"success"`
+	Success *bool      `db:"success"` // mid-run is neither success nor failure
+
+	StepID int `db:"step_id"`
+}
+
+func (r *Run) SetStart() {
+	t := time.Now()
+	r.Start = &t
+}
+
+func (r *Run) SetEnd() {
+	t := time.Now()
+	r.End = &t
+}
+
+func (r *Run) MarkSuccess(s bool) {
+	r.Success = &s
+}
+
+func (r *Run) Failed() bool {
+	return r.Success != nil && *r.Success == false
+}
+
+func (st *Step) SetStart() {
+	t := time.Now()
+	st.Start = &t
+}
+
+func (st *Step) SetEnd() {
+	t := time.Now()
+	st.End = &t
+}
+
+func (st *Step) MarkSuccess(s bool) {
+	st.Success = &s
+}
+
+func (task *Task) SetStart() {
+	t := time.Now()
+	task.Start = &t
+}
+
+func (task *Task) SetEnd() {
+	t := time.Now()
+	task.End = &t
+}
+
+func (task *Task) MarkSuccess(s bool) {
+	task.Success = &s
 }

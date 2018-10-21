@@ -8,10 +8,12 @@ CREATE TABLE pipelines (
 );
 
 CREATE TABLE runs (
+    -- TODO: fix this. This count won't be accurate. This should be an ID and another
+    -- way needs to be found to determine the count.
     count SERIAL NOT NULL UNIQUE,
     start_time timestamp NOT NULL,
-    end_time timestamp NOT NULL,
-    success boolean NOT NULL,
+    end_time timestamp,
+    success boolean,
 
     pipeline_remote varchar(255) NOT NULL,
     pipeline_name varchar(255) NOT NULL,
@@ -24,8 +26,8 @@ CREATE TABLE steps (
     id SERIAL NOT NULL UNIQUE,
     name varchar(255) NOT NULL,
     start_time timestamp NOT NULL,
-    end_time timestamp NOT NULL,
-    success boolean NOT NULL,
+    end_time timestamp,
+    success boolean,
 
     pipeline_remote varchar(255) NOT NULL,
     pipeline_name varchar(255) NOT NULL,
@@ -39,8 +41,8 @@ CREATE TABLE tasks (
     id SERIAL NOT NULL UNIQUE,
     name varchar(255) NOT NULL,
     start_time timestamp NOT NULL,
-    end_time timestamp NOT NULL,
-    success boolean NOT NULL,
+    end_time timestamp,
+    success boolean,
 
     step_id INTEGER NOT NULL,
 
@@ -50,23 +52,4 @@ CREATE TABLE tasks (
 
 INSERT INTO pipelines (remote, ref, name)
 VALUES
-    ('https://gitlab.com/run-ci/runlet', 'master', 'default');
-
--- TODO: clean this up, or don't even put it in here. It's just staying in here for now so I have somewhere to put it
--- and I can get some sleep.
-
--- Inserting run with its steps. This can be expanded for the tasks as well.
-WITH run_data AS (
-    INSERT INTO runs (start_time, end_time, success, pipeline_remote, pipeline_name)
-    VALUES
-        (current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default')
-    RETURNING *
-), step_data AS (
-    INSERT INTO steps (name, start_time, end_time, success, pipeline_remote, pipeline_name, run_count)
-        SELECT 'write', current_timestamp, current_timestamp, true, 'https://gitlab.com/run-ci/runlet', 'default', run_data.count
-        FROM run_data
-    RETURNING *
-)
-INSERT INTO tasks (name, start_time, end_time, success, step_id)
-    SELECT 'write', current_timestamp, current_timestamp, true, step_data.id
-    FROM step_data;
+    ('https://github.com/run-ci/runlet', 'master', 'default');

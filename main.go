@@ -101,7 +101,14 @@ func main() {
 			Name:   ev.Name,
 		}
 
-		err = st.LoadPipeline(p)
+		logger := logger.WithFields(log.Fields{
+			"pipeline_remote": p.Remote,
+			"pipeline_name":   p.Name,
+		})
+
+		logger.Debug("loading pipeline")
+
+		err = st.ReadPipeline(p)
 		if err != nil {
 			logger.WithField("error", err).Error("error loading pipeline from store, skipping")
 
@@ -110,25 +117,53 @@ func main() {
 
 		start := time.Now()
 		r := store.Run{
-			Start: &start,
+			Start:          &start,
+			PipelineName:   p.Name,
+			PipelineRemote: p.Remote,
 		}
 		p.Runs = append(p.Runs, r)
 
+		logger.Debug("creating new pipeline run")
+
+		err = st.CreateRun(&r)
+		if err != nil {
+			logger.WithField("error", err).Error("unable to save pipeline run")
+
+			continue
+		}
+
 		for _, step := range ev.Steps {
+			// The pipeline could have been marked unsuccessful in some task. At
+			// that point, the right thing to do is to break out of this loop.
+			// Since the tasks are run in their own loop, they can't break to the
+			// right spot, so this check needs to be here.
+			if r.Failed() {
+				break
+			}
+
 			logger := logger.WithFields(log.Fields{
-				"remote": p.Remote,
-				"name":   p.Name,
-				"step":   step.Name,
+				"step": step.Name,
 			})
 
 			logger.Debug("running step")
 
 			start := time.Now()
 			s := store.Step{
-				Name:  step.Name,
-				Start: &start,
+				Name:           step.Name,
+				Start:          &start,
+				RunCount:       r.Count,
+				PipelineName:   r.PipelineName,
+				PipelineRemote: r.PipelineRemote,
 			}
 			r.Steps = append(r.Steps, s)
+
+			err = st.CreateStep(&s)
+			if err != nil {
+				logger.WithField("error", err).Error("unable to save step, aborting")
+
+				s.MarkSuccess(false)
+				break
+			}
 
 			for _, task := range step.Tasks {
 				logger := logger.WithField("task", task.Name)
@@ -137,10 +172,20 @@ func main() {
 
 				start := time.Now()
 				t := store.Task{
-					Name:  task.Name,
-					Start: &start,
+					Name:   task.Name,
+					Start:  &start,
+					StepID: s.ID,
 				}
 				s.Tasks = append(s.Tasks, t)
+
+				err := st.CreateTask(&t)
+				if err != nil {
+					logger.WithField("error", err).Error("unable to save task, aborting")
+
+					s.MarkSuccess(false)
+					r.MarkSuccess(false)
+					break
+				}
 
 				if task.Mount == "" {
 					task.Mount = cimnt
@@ -170,10 +215,28 @@ func main() {
 				logger = logger.WithField("container_id", id)
 				if err != nil {
 					logger.WithField("error", err).
-						Fatalf("error running task container")
+						Error("error running task container")
 				}
 
 				logger.Debugf("task container exited with status %v", status)
+
+				t.SetEnd()
+				t.MarkSuccess(true)
+				err = st.UpdateTask(&t)
+				if err != nil {
+					logger.WithField("error", err).Error("unable to save pipeline task, continuing")
+
+					// Continuing here is safe because the task itself finished successfully.
+				}
+			}
+
+			s.SetEnd()
+			s.MarkSuccess(true)
+			err = st.UpdateStep(&s)
+			if err != nil {
+				logger.WithField("error", err).Error("unable to save pipeline step, continuing")
+
+				// Continuing here is safe because the step itself finished successfully.
 			}
 		}
 
@@ -185,11 +248,13 @@ func main() {
 			}).Error("unable to delete volume")
 		}
 
-		err = st.SavePipeline(*p)
+		r.SetEnd()
+		r.MarkSuccess(true)
+		err = st.UpdateRun(&r)
 		if err != nil {
 			logger.WithFields(log.Fields{
 				"error": err,
-			}).Error("unable sto save pipeline")
+			}).Error("unable to save run")
 		}
 	}
 }
