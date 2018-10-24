@@ -10,6 +10,7 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 	nats "github.com/nats-io/go-nats"
 	"github.com/run-ci/run/pkg/run"
+	tasklog "github.com/run-ci/runlet/log"
 	"github.com/run-ci/runlet/store"
 	log "github.com/sirupsen/logrus"
 )
@@ -185,6 +186,27 @@ func main() {
 					logger.Debugf("shell set to %v", task.Shell)
 				}
 
+				logger.Debug("initializing output logging chain")
+
+				logoutPath := "logout.log"
+				logout, err := os.OpenFile(logoutPath, os.O_CREATE|os.O_RDWR, 0644)
+				if err != nil {
+					logger.WithField("error", err).
+						Errorf("unable to create file log at %v, won't log there", logoutPath)
+				}
+
+				logger.Debug("initializing error logging chain")
+
+				logerrPath := "logerr.log"
+				logerr, err := os.OpenFile(logerrPath, os.O_CREATE|os.O_RDWR, 0644)
+				if err != nil {
+					logger.WithField("error", err).
+						Errorf("unable to create file log at %v, won't log there", logerrPath)
+				}
+
+				outchain := tasklog.Middleware(os.Stdout.Write).Chain(logout)
+				errchain := tasklog.Middleware(os.Stdout.Write).Chain(logerr)
+
 				spec := run.ContainerSpec{
 					Imgref: task.Image,
 					Cmd:    task.GetCmd(),
@@ -193,6 +215,9 @@ func main() {
 						Point: task.Mount,
 						Type:  "volume",
 					},
+
+					OutputStream: outchain,
+					ErrorStream:  errchain,
 				}
 
 				logger.Debug("running task container")

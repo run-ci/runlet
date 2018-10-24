@@ -104,7 +104,7 @@ github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.8.0
 github.com/pkg/errors
-# github.com/run-ci/run v0.0.0-20181024002207-929ff623b909
+# github.com/run-ci/run v0.0.0-20181024012308-5c2a633c8f18
 github.com/run-ci/run/pkg/run
 # github.com/ryanuber/go-glob v0.0.0-20170128012129-256dc444b735
 github.com/ryanuber/go-glob

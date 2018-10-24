@@ -31,7 +31,7 @@ require (
 	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
 	github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39 // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
-	github.com/run-ci/run v0.0.0-20181024002207-929ff623b909
+	github.com/run-ci/run v0.0.0-20181024012308-5c2a633c8f18
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/sirupsen/logrus v1.1.1
 	github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926 // indirect
