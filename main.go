@@ -18,24 +18,7 @@ var natsURL, gitimg, cimnt, pgconnstr string
 var logger *log.Entry
 
 func init() {
-	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
-	case "debug", "trace":
-		log.SetLevel(log.DebugLevel)
-	case "info":
-		log.SetLevel(log.InfoLevel)
-	case "warn", "warning":
-		log.SetLevel(log.WarnLevel)
-	case "error":
-		log.SetLevel(log.ErrorLevel)
-	case "fatal":
-		log.SetLevel(log.FatalLevel)
-	default:
-		log.SetLevel(log.InfoLevel)
-	}
-
-	logger = log.WithFields(log.Fields{
-		"package": "main",
-	})
+	logger = initlog()
 
 	natsURL = os.Getenv("RUNLET_NATS_URL")
 	if natsURL == "" {
@@ -52,34 +35,7 @@ func init() {
 		cimnt = "/ci/repo"
 	}
 
-	pguser := os.Getenv("RUNLET_POSTGRES_USER")
-	if pguser == "" {
-		logger.Fatal("need RUNLET_POSTGRES_USER")
-	}
-
-	pgpass := os.Getenv("RUNLET_POSTGRES_PASS")
-	if pgpass == "" {
-		logger.Fatal("need RUNLET_POSTGRES_PASS")
-	}
-
-	pghref := os.Getenv("RUNLET_POSTGRES_HREF")
-	if pghref == "" {
-		logger.Fatal("need RUNLET_POSTGRES_HREF")
-	}
-
-	pgdb := os.Getenv("RUNLET_POSTGRES_DB")
-	if pgdb == "" {
-		logger.Fatal("need RUNLET_POSTGRES_DB")
-	}
-
-	pgssl := os.Getenv("RUNLET_POSTGRES_SSL")
-	if pgssl == "" {
-		logger.Info("RUNLET_POSTGRES_SSL not set - defaulting to verify-full")
-		pgssl = "verify-full"
-	}
-
-	pgconnstr = fmt.Sprintf("postgres://%v:%v@%v/%v?sslmode=%v",
-		pguser, pgpass, pghref, pgdb, pgssl)
+	pgconnstr = initpg()
 }
 
 func main() {
@@ -287,4 +243,56 @@ func main() {
 			}).Error("unable to save run")
 		}
 	}
+}
+
+func initpg() string {
+	pguser := os.Getenv("RUNLET_POSTGRES_USER")
+	if pguser == "" {
+		logger.Fatal("need RUNLET_POSTGRES_USER")
+	}
+
+	pgpass := os.Getenv("RUNLET_POSTGRES_PASS")
+	if pgpass == "" {
+		logger.Fatal("need RUNLET_POSTGRES_PASS")
+	}
+
+	pghref := os.Getenv("RUNLET_POSTGRES_HREF")
+	if pghref == "" {
+		logger.Fatal("need RUNLET_POSTGRES_HREF")
+	}
+
+	pgdb := os.Getenv("RUNLET_POSTGRES_DB")
+	if pgdb == "" {
+		logger.Fatal("need RUNLET_POSTGRES_DB")
+	}
+
+	pgssl := os.Getenv("RUNLET_POSTGRES_SSL")
+	if pgssl == "" {
+		logger.Info("RUNLET_POSTGRES_SSL not set - defaulting to verify-full")
+		pgssl = "verify-full"
+	}
+
+	return fmt.Sprintf("postgres://%v:%v@%v/%v?sslmode=%v",
+		pguser, pgpass, pghref, pgdb, pgssl)
+}
+
+func initlog() *log.Entry {
+	switch strings.ToLower(os.Getenv("RUNLET_LOG_LEVEL")) {
+	case "debug", "trace":
+		log.SetLevel(log.DebugLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "warn", "warning":
+		log.SetLevel(log.WarnLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
+
+	return log.WithFields(log.Fields{
+		"package": "main",
+	})
 }
