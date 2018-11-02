@@ -1,7 +1,6 @@
 package log
 
 import (
-	"fmt"
 	"io"
 	"os"
 )
@@ -9,14 +8,11 @@ import (
 type Middleware func(p []byte) (int, error)
 
 func (mw Middleware) Write(p []byte) (int, error) {
-	fmt.Println("CALLING MIDDLEWARE WRITE WITH %s", p)
 	return mw(p)
 }
 
 func (mw Middleware) Chain(wr io.Writer) Middleware {
-	fmt.Println("CHAIN CREATED")
 	return func(p []byte) (int, error) {
-		fmt.Printf("RUNNING CHAIN WITH %s\n", p)
 		var buf []byte
 		copy(p, buf)
 
